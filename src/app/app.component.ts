@@ -1,11 +1,31 @@
-import { Component } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+// app.component.ts
+import { Component, effect, inject } from '@angular/core';
+import { Router, RouterOutlet } from '@angular/router';
+import { AuthService } from './auth.service';
 
 @Component({
-    selector: 'app-root',
-    imports: [RouterOutlet],
-    templateUrl: './app.component.html',
-    styleUrl: './app.component.css'
+  selector: 'app-root',
+  standalone: true,
+  imports: [RouterOutlet],
+  templateUrl: './app.component.html'
 })
 export class AppComponent {
+  auth = inject(AuthService);
+  #router = inject(Router);
+
+  constructor() {
+    effect(() => {
+        const user = this.auth.user();
+        
+        if (user !== undefined) {
+          if (user) {
+            if (this.#router.url.includes('/login')) {
+              this.#router.navigate(['/dashboard']);
+            }
+          } else {
+            this.#router.navigate(['/login']);
+          }
+        }
+      });
+  }
 }
