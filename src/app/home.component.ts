@@ -1,6 +1,8 @@
 // components/inicio-content/inicio-content.component.ts
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { AuthService } from './auth.service';
+import { IUser } from './model';
+import { RestService } from './rest.service';
 
 @Component({
   selector: 'app-home',
@@ -25,6 +27,21 @@ import { AuthService } from './auth.service';
         <span class="card-sub">Sesión segura</span>
       </div>
     </section>
+
+    <div>
+      <h2>Usuarios</h2>
+      @if (!errorMessage()) {
+        <section class="dashboard-grid">
+         @for (_user of users(); track $index) {
+           <div class="card">
+             <h5>{{_user.name.first}}</h5>
+           </div>
+         }
+       </section>
+      } @else {
+        <h4 style="color: red;">{{errorMessage()}}</h4>
+      }
+    </div>
   `,
   styles: `
     .top-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; }
@@ -40,4 +57,24 @@ import { AuthService } from './auth.service';
 })
 export class HomeComponent {
   auth = inject(AuthService);
+  rest = inject(RestService);
+  users = signal<Array<IUser>>([]);
+  errorMessage = signal<string>('');
+
+  ngOnInit() {
+    this.fetchUserData();
+  }
+
+
+  async fetchUserData() {
+    this.rest.getUsers().subscribe({
+      next: (data) => {
+        this.users.set(data);
+      },
+      error: (error) => {
+        console.error('Error en la API:', error);
+        this.errorMessage.set('Solo los profesores pueden ver a los usuarios');
+      },
+    });
+  }
 }

@@ -16,11 +16,29 @@ export class AuthService {
   #auth = inject(FIREBASE_AUTH);
 
   user = signal<User | null | undefined>(undefined);
+  role = signal<'professor' | 'student' | null>(null);
 
   constructor() {
-    onAuthStateChanged(this.#auth, (user) => {
+    onAuthStateChanged(this.#auth, async (user) => {
       this.user.set(user);
+
+      if (user) {
+        const tokenResult = await user.getIdTokenResult();
+        const role = tokenResult.claims['role'] as 'professor' | 'student';
+        this.role.set(role || 'student');
+      } else {
+        this.role.set(null);
+      }
     });
+  }
+
+  async refreshUserTokenAndRole() {
+    const user = this.#auth.currentUser;
+    if (user) {
+      const tokenResult = await user.getIdTokenResult(true); 
+      const newRole = tokenResult.claims['role'] as 'professor' | 'student';
+      this.role.set(newRole || 'student');
+    }
   }
 
   async loginWithGoogle() {

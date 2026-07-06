@@ -32,6 +32,7 @@ import { IUserProfile } from './model';
       @if (!loading() && !errorMessage() && apiUserData()) {
         @let apiUser = apiUserData();
         @let fbUser = auth.user();
+        @let role = auth.role();
 
         <div class="profile-card">
           <div class="card-header">
@@ -42,9 +43,9 @@ import { IUserProfile } from './model';
             />
             <div class="header-text">
               <h3>{{ apiUser?.name || fbUser?.displayName }}</h3>
-              <span class="badge">{{
-                apiUser?.role || 'Sin rol especificado'
-              }}</span>
+              <span class="badge" [class.professor]="role === 'professor'">
+                Rol Actual: {{ role === 'professor' ? 'Profesor' : 'Estudiante' }}
+              </span>
             </div>
           </div>
 
@@ -52,6 +53,28 @@ import { IUserProfile } from './model';
             <div class="info-row">
               <span class="label">Correo Electrónico:</span>
               <span class="value">{{ apiUser?.email || fbUser?.email }}</span>
+            </div>
+
+            <div class="role-management">
+              <h4>Cambiar de Rol</h4>
+              <div class="actions-grid">
+                <button 
+                  class="btn-role btn-student" 
+                  [disabled]="role === 'student' || updatingRole()"
+                  (click)="updateUserRole('student')">
+                  Cambiar a Estudiante
+                </button>
+                <button 
+                  class="btn-role btn-professor" 
+                  [disabled]="role === 'professor' || updatingRole()"
+                  (click)="updateUserRole('professor')">
+                  Cambiar a Profesor
+                </button>
+              </div>
+              
+              @if (updatingRole()) {
+                <p class="updating-text">Reemitiendo credenciales de seguridad...</p>
+              }
             </div>
             @if (apiUser?.createdAt) {
               <div class="info-row">
@@ -112,7 +135,6 @@ import { IUserProfile } from './model';
       margin-top: 8px;
     }
 
-    /* Perfil Estilo Tarjeta */
     .profile-card {
       background: white;
       border-radius: 12px;
@@ -185,6 +207,20 @@ import { IUserProfile } from './model';
       font-size: 12px;
     }
 
+    .role-management { border-top: 1px solid #e5e7eb; padding-top: 20px; margin-top: 10px; }
+    .role-management h4 { margin: 0 0 4px 0; color: #111827; font-size: 16px; }
+    .role-desc { color: #6b7280; font-size: 13px; margin: 0 0 16px 0; line-height: 1.4; }
+    .actions-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    
+    .btn-role { padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-weight: 600; font-size: 14px; cursor: pointer; transition: all 0.2s; }
+    .btn-role:disabled { opacity: 0.4; cursor: not-allowed; background-color: #f3f4f6; color: #9ca3af; border-color: #e5e7eb; }
+    
+    .btn-student:not(:disabled) { background-color: #fff; color: #0284c7; border-color: #bae6fd; }
+    .btn-student:not(:disabled):hover { background-color: #f0f9ff; }
+    
+    .btn-professor:not(:disabled) { background-color: #fff; color: #d97706; border-color: #fde68a; }
+    .btn-professor:not(:disabled):hover { background-color: #fffbeb; }
+
     .card-footer {
       background-color: #f9fafb;
       padding: 12px 24px;
@@ -201,6 +237,7 @@ export class ConfigurationComponent implements OnInit {
 
   apiUserData = signal<IUserProfile | null>(null);
   loading = signal<boolean>(true);
+  updatingRole = signal<boolean>(false);
   errorMessage = signal<string | null>(null);
 
 
@@ -208,34 +245,37 @@ export class ConfigurationComponent implements OnInit {
     this.fetchUserData();
   }
 
+  async updateUserRole(role: 'professor' | 'student') {
+    this.updatingRole.set(true);
+    this.errorMessage.set(null);
+
+    this.rest.setRole(role).subscribe({
+      next: async () => {
+        await this.auth.refreshUserTokenAndRole();
+        this.updatingRole.set(false);
+      },
+      error: (error) => {
+        console.error('Error en la API:', error);
+        this.errorMessage.set('Error en el servidor externo.');
+        this.updatingRole.set(false);
+      },
+    });
+  }
+
   async fetchUserData() {
     this.loading.set(true);
     this.errorMessage.set(null);
 
-    const currentUser = this.auth.user();
-
-    if (!currentUser) {
-      this.errorMessage.set('No hay un usuario autenticado en Firebase.');
-      this.loading.set(false);
-      return;
-    }
-
-    try {
-      this.rest.getUserProfile().subscribe({
-        next: (data) => {
-          this.apiUserData.set(data);
-          this.loading.set(false);
-        },
-        error: (error) => {
-          console.error('Error en la API:', error);
-          this.errorMessage.set('Error en el servidor externo.');
-          this.loading.set(false);
-        },
-      });
-    } catch (error) {
-      console.error('Error al obtener el token de Firebase:', error);
-      this.errorMessage.set('No se pudo generar el token de seguridad.');
-      this.loading.set(false);
-    }
+    this.rest.getUserProfile().subscribe({
+      next: (data) => {
+        this.apiUserData.set(data);
+        this.loading.set(false);
+      },
+      error: (error) => {
+        console.error('Error en la API:', error);
+        this.errorMessage.set('Error en el servidor externo.');
+        this.loading.set(false);
+      },
+    });
   }
 }

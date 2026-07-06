@@ -9,13 +9,17 @@ import { IUser } from './model';
 })
 export class RestService {
   #http = inject(HttpClient);
-  #apiUrl = 'https://utn-frlp-tup-api-rest.onrender.com/';
+  #apiUrl = 'https://utn-frlp-tup-api-rest.onrender.com';
 
   getUserProfile(): Observable<UserProfile> {
-    return this.#http.get<UserProfile>(`${this.#apiUrl}me`);
+    return this.#http.get<UserProfile>(`${this.#apiUrl}/me`);
   }
 
-  getUsers(): Observable<IUser> {
-    return this.#http.get<IUser>(`${this.#apiUrl}me`);
+  getUsers(): Observable<Array<IUser>> {
+    return this.#http.get<Array<IUser>>(`${this.#apiUrl}/users`);
+  }
+
+  setRole(role: 'professor' | 'student') {
+    return this.#http.put(`${this.#apiUrl}/role`, { role });
   }
 }
