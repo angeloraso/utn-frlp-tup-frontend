@@ -1,15 +1,8 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-
-export interface UserProfile {
-  id?: string;
-  name?: string;
-  email?: string;
-  role?: string;
-  createdAt?: string;
-  [key: string]: any;
-}
+import { UserProfile } from 'firebase/auth';
+import { IUser } from './model';
 
 @Injectable({
   providedIn: 'root',
@@ -20,5 +13,9 @@ export class RestService {
 
   getUserProfile(): Observable<UserProfile> {
     return this.#http.get<UserProfile>(`${this.#apiUrl}me`);
+  }
+
+  getUsers(): Observable<IUser> {
+    return this.#http.get<IUser>(`${this.#apiUrl}me`);
   }
 }

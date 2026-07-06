@@ -2,15 +2,7 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { AuthService } from './auth.service';
 import { DatePipe } from '@angular/common';
 import { RestService } from './rest.service';
-
-interface UserProfile {
-  id?: string;
-  name?: string;
-  email?: string;
-  role?: string;
-  createdAt?: string;
-  [key: string]: any;
-}
+import { IUserProfile } from './model';
 
 @Component({
   selector: 'app-configuracion',
@@ -207,7 +199,7 @@ export class ConfigurationComponent implements OnInit {
   private rest = inject(RestService);
   auth = inject(AuthService);
 
-  apiUserData = signal<UserProfile | null>(null);
+  apiUserData = signal<IUserProfile | null>(null);
   loading = signal<boolean>(true);
   errorMessage = signal<string | null>(null);
 

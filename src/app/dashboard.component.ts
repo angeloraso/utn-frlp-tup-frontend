@@ -10,7 +10,7 @@ import { AuthService } from './auth.service';
     <div class="dashboard-layout">
       <aside class="sidebar">
         <div class="brand">
-          <h2>Mi App 2026</h2>
+          <h2>UTN FRLP TUP 2026</h2>
         </div>
         <nav class="nav-links">
           <a routerLink="/dashboard/home" routerLinkActive="active">Inicio</a>
