@@ -1,7 +1,7 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { AuthService } from './auth.service';
 import { DatePipe } from '@angular/common';
+import { RestService } from './rest.service';
 
 interface UserProfile {
   id?: string;
@@ -203,15 +203,14 @@ interface UserProfile {
     }
   `,
 })
-export class ConfiguracionComponent implements OnInit {
-  private http = inject(HttpClient);
+export class ConfigurationComponent implements OnInit {
+  private rest = inject(RestService);
   auth = inject(AuthService);
 
   apiUserData = signal<UserProfile | null>(null);
   loading = signal<boolean>(true);
   errorMessage = signal<string | null>(null);
 
-  private apiUrl = 'https://utn-frlp-tup-api-rest.onrender.com/me';
 
   ngOnInit(): void {
     this.fetchUserData();
@@ -230,11 +229,7 @@ export class ConfiguracionComponent implements OnInit {
     }
 
     try {
-      const token = await currentUser.getIdToken();
-
-      const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
-
-      this.http.get<UserProfile>(this.apiUrl, { headers }).subscribe({
+      this.rest.getUserProfile().subscribe({
         next: (data) => {
           this.apiUserData.set(data);
           this.loading.set(false);

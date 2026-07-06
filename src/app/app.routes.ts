@@ -47,7 +47,7 @@ export const routes: Routes = [
       },
       {
         path: 'configuration',
-        loadComponent: () => import('./configuration.component').then(m => m.ConfiguracionComponent)
+        loadComponent: () => import('./configuration.component').then(m => m.ConfigurationComponent)
       },
       {
         path: '',
