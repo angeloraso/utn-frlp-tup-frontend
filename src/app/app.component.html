@@ -1,7 +1,7 @@
-@if (auth.user() !== undefined) {
-  <router-outlet />
-} @else {
+@if (auth.user() === undefined) {
   <div class="global-loader">
     <p>Iniciando aplicación...</p>
   </div>
+} @else {
+  <router-outlet />
 }
