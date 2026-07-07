@@ -16,16 +16,19 @@ export class AppComponent {
   constructor() {
     effect(() => {
         const user = this.auth.user();
-        
-        if (user !== undefined) {
-          if (user) {
-            if (this.#router.url.includes('/login')) {
-              this.#router.navigate(['/dashboard']);
-            }
-          } else {
-            this.#router.navigate(['/login']);
-          }
+        if (user === undefined) {
+          return;
         }
+
+        if (user) {
+          if (this.#router.url.includes('/login')) {
+            this.#router.navigate(['/dashboard']);
+          }
+
+          return;
+        }
+
+        this.#router.navigate(['/login']);
       });
   }
 }
